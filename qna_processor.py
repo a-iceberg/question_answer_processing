@@ -1,4 +1,3 @@
-# промт полностью помещен в system content
 import openai
 import csv
 import tiktoken  
