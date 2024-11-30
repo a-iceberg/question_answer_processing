@@ -5,7 +5,7 @@ import tiktoken
 # API-ключ OpenAI
 openai.api_key = "api_key"
 # Укажите используемую модель
-model_name = "gpt-4o"  # Можно заменить на "gpt-3.5-turbo" для ускорения
+model_name = "gpt-4o"  # Можно заменить на "gpt-4"
 
 # Функция для подсчёта токенов
 def count_tokens(text, model=model_name):
