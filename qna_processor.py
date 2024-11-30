@@ -1,11 +1,13 @@
+# промт полностью помещен в system content
 import openai
 import csv
 import tiktoken  
 
 # API-ключ OpenAI
 openai.api_key = "api_key"
-# Укажите используемую модель
-model_name = "gpt-4o"  # Можно заменить на "gpt-4"
+
+# используемая модель
+model_name = "gpt-4"  # Можно заменить на "gpt-4"
 
 # Функция для подсчёта токенов
 def count_tokens(text, model=model_name):
@@ -20,7 +22,7 @@ def process_qna_with_ai(prompt_template, input_data):
         question = row[0]  # Извлекаем вопрос
         answers = row[1:]  # Извлекаем ответы
         # Формируем текст для отправки в OpenAI
-        input_text = f"{prompt_template}\n\nСпаршенный вопрос с ответами:\n{question}#{'#'.join(answers)}"
+        input_text = f"Спаршенный вопрос с ответами:\n{question}#{'#'.join(answers)}"
 
         # Подсчитываем входящие токены
         input_tokens = count_tokens(input_text, model=model_name)
@@ -30,25 +32,25 @@ def process_qna_with_ai(prompt_template, input_data):
             response = openai.ChatCompletion.create(
                 model=model_name,
                 messages=[
-                    {"role": "system", "content": "Ты профессиональный инженер по ремонту бытовой техники."},
+                    {"role": "system", "content": prompt_template},  
                     {"role": "user", "content": input_text}
                 ],
                 max_tokens=1500,  # Устанавливаем лимит токенов
-                temperature=0.7  # креативность модели
+                temperature=0.7  # Настраиваем креативность модели
             )
             # Получаем ответ модели
             model_response = response['choices'][0]['message']['content'].strip()
-
+            
             # Подсчитываем выходящие токены
             output_tokens = count_tokens(model_response, model=model_name)
-
+            
             # Обновляем итоговую сумму токенов
             total_tokens += input_tokens + output_tokens
-
+            
             # Разделяем на переформулированный вопрос и ответ
             reformulated_question, answer = model_response.split("\n", 1)
             results.append([idx, reformulated_question.strip(), answer.strip()])
-
+            
             # Выводим токены после обработки каждого вопроса
             print(f"Вопрос {idx} обработан.")
             print(f"Входящие токены: {input_tokens}, Выходящие токены: {output_tokens}, Всего токенов: {total_tokens}")
@@ -60,7 +62,7 @@ def process_qna_with_ai(prompt_template, input_data):
 
 # Загрузка шаблона промпта из файла
 with open("Промпт.txt", "r", encoding="utf-8") as prompt_file:
-    prompt_template = prompt_file.read()
+    prompt_template = prompt_file.read()  # Читаем шаблон промпта
 
 # Загрузка входных данных (вопросы и ответы)
 input_data = []
@@ -69,7 +71,7 @@ with open("Формат передачи.txt", "r", encoding="utf-8") as input_f
     for row in reader:
         input_data.append(row)
 
-# Обрабатываем данные с помощью OpenAI
+# Обрабатываем данные
 processed_results, total_tokens = process_qna_with_ai(prompt_template, input_data[:3])
 
 # Сохранение результатов в CSV-файл
@@ -81,4 +83,3 @@ with open(output_file, "w", encoding="utf-8", newline="") as output_csv:
 
 print(f"Processed results saved to {output_file}")
 print(f"Итоговое количество токенов: {total_tokens}")
-
